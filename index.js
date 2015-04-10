@@ -16,6 +16,7 @@ var moment = require('moment');
 var request = require('request');
 var User = require('./user')
 var config = require('./config');
+var apiErrorHandler = require('api-error-handler')
 
 
 var app = express();
@@ -25,6 +26,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+
 // Force HTTPS on Heroku
 if (app.get('env') === 'production') {
   app.use(function(req, res, next) {
@@ -32,7 +34,6 @@ if (app.get('env') === 'production') {
     protocol == 'https' ? next() : res.redirect('https://' + req.hostname + req.url);
   });
 }
-app.use(express.static(path.join(__dirname, '../../client')));
 
 /*
  |--------------------------------------------------------------------------
@@ -699,6 +700,13 @@ app.get('/auth/unlink/:provider', ensureAuthenticated, function(req, res) {
   });
 });
 
+
+// 404 and error handling to json
+app.use(function(req, res, next) {
+  next({status: 404, message: 'Not found'})
+})
+app.use(apiErrorHandler())
+
 /*
  |--------------------------------------------------------------------------
  | Start the Server
@@ -707,3 +715,4 @@ app.get('/auth/unlink/:provider', ensureAuthenticated, function(req, res) {
 app.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
 });
+
